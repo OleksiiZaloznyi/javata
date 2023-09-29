@@ -5,9 +5,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
+import com.example.javata.exceptions.AgeValidationException;
 import com.example.javata.model.User;
 import com.example.javata.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserService {
     private final UserRepository userRepository;
 
+    @Value("${minimum.age}")
+    private int minAge;
+
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -26,8 +31,8 @@ public class UserService {
     @PostMapping("/create")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         LocalDate currentDate = LocalDate.now();
-        if (ChronoUnit.YEARS.between(user.getBirthDate(), currentDate) < 18) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        if (ChronoUnit.YEARS.between(user.getBirthDate(), currentDate) < minAge) {
+            throw new AgeValidationException("User must be older than 18 years");
         }
         User createdUser = userRepository.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);

@@ -3,9 +3,12 @@ package com.example.javata.controller;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.javata.exceptions.AgeValidationException;
 import com.example.javata.model.User;
 import com.example.javata.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,12 +21,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
@@ -36,28 +40,53 @@ public class UserControllerTest {
 
     private User testUser;
 
+    private String testUserJson;
+
     @Before
     public void setUp() {
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setEmail("john@doe.com");
-        testUser.setFirstName("John");
-        testUser.setLastName("Doe");
-        testUser.setBirthDate(LocalDate.of(1990,1,1));
+        testUser = new User(1L,
+                "john@doe.com",
+                "John",
+                "Doe",
+                LocalDate.of(1990,
+                        01,
+                        01));
+
+
+        JSONObject json = new JSONObject();
+        json.put("id", 1);
+        json.put("email", "john@doe.com");
+        json.put("firstName", "John");
+        json.put("lastName", "Doe");
+        json.put("birthDate", "2013-01-01");
+        json.put("address", JSONObject.NULL);
+        json.put("phoneNumber", JSONObject.NULL);
+
+        testUserJson = json.toString();
     }
 
     @Test
-    public void testCreateUser() throws Exception {
-        String json = "{\"id\":\"1\",\"email\":\"john@doe.com\",\"firstName\":\"John\",\"lastName\":\"Doe\",\"birthDate\":\"1990-01-01\",\"address\":\"null\",\"phoneNumber\":\"null\"}";
-        when(userService.createUser(any(User.class))).thenReturn(ResponseEntity.ok(testUser));
+    public void testCreateUser_isOk() throws Exception {
+//        when(userService.createUser(any(User.class))).thenReturn(ResponseEntity.ok(testUser));
 
         mockMvc.perform(post("/users/create")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
+                .content(testUserJson))
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers
                         .jsonPath("$.email")
                         .value("john@doe.com"));
+    }
+
+    @Test
+    public void testCreateUser_notOk() throws Exception {
+        mockMvc.perform(post("/users/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(testUserJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AgeValidationException))
+                .andExpect(result -> assertEquals("User must be older than 18 years",
+                        result.getResolvedException().getMessage()));
     }
 
     @Test
