@@ -1,5 +1,6 @@
 package com.example.javata.controller;
 
+import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.List;
 import javax.validation.Valid;
@@ -21,7 +22,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) throws URISyntaxException {
         return userService.createUser(user);
     }
 

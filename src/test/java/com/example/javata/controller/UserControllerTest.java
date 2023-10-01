@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -48,7 +49,7 @@ public class UserControllerTest {
                 "john@doe.com",
                 "John",
                 "Doe",
-                LocalDate.of(1990,
+                LocalDate.of(2013,
                         01,
                         01));
 
@@ -67,7 +68,7 @@ public class UserControllerTest {
 
     @Test
     public void testCreateUser_isOk() throws Exception {
-//        when(userService.createUser(any(User.class))).thenReturn(ResponseEntity.ok(testUser));
+        when(userService.createUser(any(User.class))).thenReturn(ResponseEntity.ok(testUser));
 
         mockMvc.perform(post("/users/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,6 +77,23 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers
                         .jsonPath("$.email")
                         .value("john@doe.com"));
+    }
+
+    @Test
+    public void testCreateUser_ValidAge() throws Exception {
+        // Создаем пользователя, который старше 18 лет
+        User testUser = new User();
+        testUser.setEmail("john@doe.com");
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setBirthDate(LocalDate.of(2000, 1, 1)); // Пользователь старше 18 лет
+
+        // Отправляем POST-запрос для создания пользователя
+        mockMvc.perform(MockMvcRequestBuilders.post("/users/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(testUserJson))
+                .andExpect(MockMvcResultMatchers.status().isCreated()) // Ожидаем код 201 Created
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value("john@doe.com")); // Проверяем другие поля, если необходимо
     }
 
     @Test
