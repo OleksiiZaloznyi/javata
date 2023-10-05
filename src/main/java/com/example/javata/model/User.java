@@ -12,7 +12,6 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-//@AllArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
