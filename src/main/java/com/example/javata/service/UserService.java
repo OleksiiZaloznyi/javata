@@ -6,8 +6,8 @@ import java.util.Optional;
 import javax.validation.Valid;
 import com.example.javata.model.User;
 import com.example.javata.repository.UserRepository;
-import static com.example.javata.validator.AgeValidator.isValidAge;
-import static com.example.javata.validator.EmailValidator.isValidEmail;
+import static com.example.javata.util.AgeValidatorUtil.isValidAge;
+import static com.example.javata.util.EmailValidatorUtil.isValidEmail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,28 +45,24 @@ public class UserService {
             @Valid @RequestBody User updatedUser) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
+            log.error("User Not Found");
             return ResponseEntity.notFound().build();
         }
-
         User existingUser = optionalUser.get();
-
         if (isValidAge(updatedUser, minAge)) {
             log.error("User must be older than 18 years");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-
         if (!isValidEmail(updatedUser.getEmail())) {
             log.error("Email is incorrect");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setFirstName(updatedUser.getFirstName());
         existingUser.setLastName(updatedUser.getLastName());
         existingUser.setBirthDate(updatedUser.getBirthDate());
         existingUser.setAddress(updatedUser.getAddress());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-
         updatedUser = userRepository.save(existingUser);
         return ResponseEntity.ok(updatedUser);
     }
