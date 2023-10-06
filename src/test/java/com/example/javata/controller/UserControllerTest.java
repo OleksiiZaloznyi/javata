@@ -20,7 +20,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,15 +40,15 @@ public class UserControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private UserService userService;
-    private User testUserValid;
-    private String testUserJsonInvalidAge;
-    private String testUserJsonInvalidEmail;
-    private String testUserJsonValid;
-    private String testUserJsonValidUpdated;
+    private User userValid;
+    private String userInvalidAgeJson;
+    private String userInvalidEmailJson;
+    private String userValidJson;
+    private String userValidUpdatedJson;
 
     @Before
     public void setUp() {
-        testUserValid = new User(1L,
+        userValid = new User(1L,
                 "john@doe.com",
                 "John",
                 "Doe",
@@ -61,7 +64,7 @@ public class UserControllerTest {
         jsonInvalidAge.put("birthDate", "2013-01-01");
         jsonInvalidAge.put("address", JSONObject.NULL);
         jsonInvalidAge.put("phoneNumber", JSONObject.NULL);
-        testUserJsonInvalidAge = jsonInvalidAge.toString();
+        userInvalidAgeJson = jsonInvalidAge.toString();
 
         JSONObject jsonInvalidEmail = new JSONObject();
         jsonInvalidEmail.put("id", 1);
@@ -71,7 +74,7 @@ public class UserControllerTest {
         jsonInvalidEmail.put("birthDate", "2003-01-01");
         jsonInvalidEmail.put("address", JSONObject.NULL);
         jsonInvalidEmail.put("phoneNumber", JSONObject.NULL);
-        testUserJsonInvalidEmail = jsonInvalidEmail.toString();
+        userInvalidEmailJson = jsonInvalidEmail.toString();
 
         JSONObject jsonValid = new JSONObject();
         jsonValid.put("id", 1);
@@ -81,14 +84,14 @@ public class UserControllerTest {
         jsonValid.put("birthDate", "2003-01-01");
         jsonValid.put("address", JSONObject.NULL);
         jsonValid.put("phoneNumber", JSONObject.NULL);
-        testUserJsonValid = jsonValid.toString();
+        userValidJson = jsonValid.toString();
     }
 
     @Test
     public void testA_CreateUser_isOk() throws Exception {
         mockMvc.perform(post("/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonValid))
+                        .content(userValidJson))
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers
                         .jsonPath("$.email")
@@ -99,7 +102,7 @@ public class UserControllerTest {
     public void testB_CreateUser_Age_notOk() throws Exception {
         mockMvc.perform(post("/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonInvalidAge))
+                        .content(userInvalidAgeJson))
                 .andExpect(status().isBadRequest());
     }
 
@@ -107,14 +110,14 @@ public class UserControllerTest {
     public void testC_CreateUser_Email_notOk() throws Exception {
         mockMvc.perform(post("/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonInvalidEmail))
+                        .content(userInvalidEmailJson))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testD_SearchUsersByBirthDateRange_isOk() throws Exception {
         List<User> usersInRange = new ArrayList<>();
-        usersInRange.add(testUserValid);
+        usersInRange.add(userValid);
 
         mockMvc.perform(get("/users/search")
                         .param("fromDate", "1990-01-01")
@@ -134,11 +137,11 @@ public class UserControllerTest {
         jsonUpdated.put("birthDate", "2003-01-01");
         jsonUpdated.put("address", JSONObject.NULL);
         jsonUpdated.put("phoneNumber", JSONObject.NULL);
-        testUserJsonValidUpdated = jsonUpdated.toString();
+        userValidUpdatedJson = jsonUpdated.toString();
 
         mockMvc.perform(put("/users/update/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonValidUpdated))
+                        .content(userValidUpdatedJson))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers
                         .jsonPath("$.firstName")
@@ -163,11 +166,11 @@ public class UserControllerTest {
         jsonUpdated.put("birthDate", "2013-01-01");
         jsonUpdated.put("address", JSONObject.NULL);
         jsonUpdated.put("phoneNumber", JSONObject.NULL);
-        testUserJsonValidUpdated = jsonUpdated.toString();
+        userValidUpdatedJson = jsonUpdated.toString();
 
         mockMvc.perform(put("/users/update/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonInvalidAge))
+                        .content(userInvalidAgeJson))
                 .andExpect(status().isBadRequest());
     }
 
@@ -181,11 +184,11 @@ public class UserControllerTest {
         jsonUpdated.put("birthDate", "2003-01-01");
         jsonUpdated.put("address", JSONObject.NULL);
         jsonUpdated.put("phoneNumber", JSONObject.NULL);
-        testUserJsonValidUpdated = jsonUpdated.toString();
+        userValidUpdatedJson = jsonUpdated.toString();
 
         mockMvc.perform(put("/users/update/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(testUserJsonInvalidEmail))
+                        .content(userInvalidEmailJson))
                 .andExpect(status().isBadRequest());
     }
 
